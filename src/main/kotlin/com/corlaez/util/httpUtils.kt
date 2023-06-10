@@ -1,13 +1,7 @@
 package com.corlaez.util
 
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import kotlinx.html.HTML
-
 // Sadly won't fix a checkbox if that checkbox is hx-included.
-val htmxCheckboxFix = """
+const val htmxCheckboxFix = """
       window.onload = function() {
         document.body.addEventListener('htmx:configRequest', function(evt) {
           const isInput = evt.detail.elt.tagName == 'INPUT';

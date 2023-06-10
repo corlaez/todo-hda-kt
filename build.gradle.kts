@@ -26,6 +26,10 @@ dependencies {
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-server-netty")
     implementation("io.ktor:ktor-server-html-builder")
+    // http4k server
+    implementation(platform("org.http4k:http4k-bom:4.47.2.0"))
+    implementation("org.http4k:http4k-core")
+    implementation("org.http4k:http4k-server-netty")
     // di
     implementation("io.insert-koin:koin-core:3.4.2")
     // db

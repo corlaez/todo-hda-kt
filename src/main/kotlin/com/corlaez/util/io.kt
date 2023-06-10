@@ -11,12 +11,14 @@ internal fun textFromResource(name: String, charset: Charset = Charset.forName("
     ClassLoader.getSystemResourceAsStream(name)!!.bufferedReader(charset).readText()
 
 internal fun fullPathForWebjar(trailingPath: String) = locator.getFullPath(trailingPath)
-
-internal fun textFromWebjar(trailingPath: String) = locator
-    .getFullPath(trailingPath)
-    .let(::textFromResource)
-
-internal fun textFromWebjarWithArtifactId(artifactId: String, trailingPath: String) = locator.allWebJars.values
+internal fun fullPathForWebjarWithArtifactId(artifactId: String, trailingPath: String) = locator.allWebJars.values
     .first { it.artifactId == artifactId }.contents
     .first { it.contains(trailingPath) }
-    .let(::textFromResource)
+
+internal fun textFromWebjar(trailingPath: String) =
+    fullPathForWebjar(trailingPath)
+        .let(::textFromResource)
+
+internal fun textFromWebjarWithArtifactId(artifactId: String, trailingPath: String) =
+    fullPathForWebjarWithArtifactId(artifactId, trailingPath)
+        .let(::textFromResource)

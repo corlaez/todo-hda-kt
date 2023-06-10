@@ -2,6 +2,8 @@ package com.corlaez.todo.tech
 
 import com.corlaez.todo.*
 import com.corlaez.util.checkboxToBoolean
+import com.corlaez.util.todoAppCss
+import com.corlaez.util.todoCommonCss
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
@@ -10,13 +12,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.LoggerFactory
 
-class TodoKtor (private val todoUseCases: TodoUseCases) {
+class TodoKtor(private val todoUseCases: TodoUseCases) {
     private val logger = LoggerFactory.getLogger(this::class.java.name)
 
     private fun ApplicationCall.getFilter(): TodoFilter =
         request.queryParameters["selectedFilter"]
-        ?.let(TodoFilter::valueOf)
-        ?: TodoFilter.ALL
+            ?.let(TodoFilter::valueOf)
+            ?: TodoFilter.ALL
     private fun ApplicationCall.getId() = parameters["id"]?.toInt()
     private fun ApplicationCall.getTodoDTO(formParams: Parameters): TodoDTO {
         val id = getId()
@@ -30,7 +32,6 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
     }
 
     fun registerRoutes(routing: Routing) = with(routing) {
-        // view list of todos
         get("/") {
             val filter = call.getFilter()
             val (list, todoInfo) = todoUseCases.list(filter)
@@ -38,7 +39,6 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
                 renderHtmx(TodoViewResponse(list, todoInfo, filter, autofocusMainInput = true))
             }
         }
-        // view list of todos in edit mode
         get("/todos/{id}") {
             val filter = call.getFilter()
             val editingId = call.getId()!!
@@ -47,7 +47,6 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
                 renderHtmx(TodoViewResponse(list, todoInfo, filter, editingId))
             }
         }
-        // update all todos completed value
         patch("/todos/toggle") {
             val formParams = call.receiveParameters()
             val filter = call.getFilter()
@@ -58,7 +57,6 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
                 renderHtmx(TodoViewResponse(list, todoInfo, filter))
             }
         }
-        // delete all completed todos
         delete("/todos/completed") {
             val filter = call.getFilter()
             todoUseCases.deleteCompleted()
@@ -67,7 +65,6 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
                 renderHtmx(TodoViewResponse(list, todoInfo, filter))
             }
         }
-        // create atodo
         post("/todo") {
             val formParams = call.receiveParameters()
             val filter = call.getFilter()
@@ -82,7 +79,6 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
                 }
             }
         }
-        // delete atodo
         delete("/todo/{id}") {
             val filter = call.getFilter()
             val id = call.getId()!!
@@ -92,7 +88,6 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
                 renderHtmx(TodoViewResponse(list, todoInfo, filter))
             }
         }
-        // edit atodo
         patch("/todo/{id}") {
             val formParams = call.receiveParameters()
             val filter = call.getFilter()
@@ -104,5 +99,7 @@ class TodoKtor (private val todoUseCases: TodoUseCases) {
                 renderHtmx(TodoViewResponse(list, todoInfo, filter, autofocusMainInput = true))
             }
         }
+        get("/todoApp.css") { call.respondText(todoAppCss, ContentType.Text.CSS) }
+        get("/learnDrawer.css") { call.respondText(todoCommonCss, ContentType.Text.CSS) }
     }
 }
