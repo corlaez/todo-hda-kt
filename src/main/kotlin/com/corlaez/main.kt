@@ -19,5 +19,4 @@ fun main() {
     }
     AppConfig.initialize()
     Http4kApp().start(3031)
-    KtorApp().start(3032)
 }

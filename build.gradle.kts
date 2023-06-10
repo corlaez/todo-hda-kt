@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm") version "1.8.21"
     kotlin("plugin.serialization") version "1.8.21"
-    id("io.ktor.plugin") version "2.3.1"
     application
 }
 
@@ -20,12 +19,10 @@ dependencies {
     implementation("org.webjars.npm:todomvc-app-css:2.4.1")
     implementation("org.webjars.npm:todomvc-common:1.0.5")
     implementation("org.webjars:webjars-locator-core:0.52")
-    // logger that ktor requires
+    // logger
     implementation("ch.qos.logback:logback-classic:1.4.7")
-    // ktor server
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-netty")
-    implementation("io.ktor:ktor-server-html-builder")
+    // html dsl
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.1")
     // http4k server
     implementation(platform("org.http4k:http4k-bom:4.47.2.0"))
     implementation("org.http4k:http4k-core")
