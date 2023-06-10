@@ -1,16 +1,12 @@
 package com.corlaez.todo.tech
 
-import com.corlaez.registerInitFunction
+import com.corlaez.SqliteExposedConfig
 import com.corlaez.todo.TodoDTO
-import dagger.Module
-import dagger.Provides
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.sql.Connection
-import java.sql.DriverManager
+import org.koin.dsl.module
 
 interface TodoRepo {
     fun <X> openTransaction(block: () -> X): X
@@ -24,10 +20,10 @@ interface TodoRepo {
     fun deleteCompleted()
 }
 
-@Module
-class TodoRepoModule {
-    @Provides fun providesTodoRepo(): TodoRepo = TodoRepoExposed()
+val todoRepoModule = module {
+    single<TodoRepo> { TodoRepoExposed(get()) }
 }
+
 // lib dependent code
 private object TodoTable: IntIdTable() {
     val completed = bool("completed")
@@ -38,23 +34,9 @@ private fun ResultRow.toDTO() = TodoDTO(this[TodoTable.id].value,this[TodoTable.
 private fun Query.toTodoList() = this.mapLazy { it.toDTO() }.toList()
 
 // Repo
-private class TodoRepoExposed : TodoRepo {
-    companion object {
-        init {
-            registerInitFunction {
-                if (!System.getenv("PROD").toBoolean()) {
-                    val devSqlitePath = "jdbc:sqlite:file:test?mode=memory&cache=shared"
-                    Database.connect(devSqlitePath, "org.sqlite.JDBC")
-                    // Prevents the connection to be closed which would destroy the in memory db for sqlite
-                    DriverManager.getConnection(devSqlitePath)
-                    // Create tables for in memory db
-                    transaction { SchemaUtils.create(TodoTable) }
-                } else {
-                    Database.connect("jdbc:sqlite:/data/data.db", "org.sqlite.JDBC")
-                }
-                TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-            }
-        }
+private class TodoRepoExposed(sqliteExposedConfig: SqliteExposedConfig) : TodoRepo {
+    init {
+        sqliteExposedConfig.registerTable(TodoTable)
     }
     override fun <X> openTransaction(block: () -> X): X = transaction {
         block()

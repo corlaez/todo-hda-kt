@@ -9,9 +9,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.LoggerFactory
-import javax.inject.Inject
 
-class TodoKtor @Inject constructor (private val todoUseCases: TodoUseCases) {
+class TodoKtor (private val todoUseCases: TodoUseCases) {
     private val logger = LoggerFactory.getLogger(this::class.java.name)
 
     private fun ApplicationCall.getFilter(): TodoFilter =

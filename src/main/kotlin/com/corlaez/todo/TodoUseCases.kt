@@ -1,14 +1,13 @@
 package com.corlaez.todo
 
 import com.corlaez.todo.tech.TodoRepo
-import javax.inject.Inject
 
 enum class TodoFilter { ALL, ACTIVE, COMPLETED }
 data class TodosInfo(val activeCount: Int, val isTotalNotEmpty: Boolean, val isCompletedNotEmpty: Boolean) {
     val isAllCompleted = activeCount == 0 && isTotalNotEmpty
 }
 
-class TodoUseCases @Inject constructor(private val todoRepo: TodoRepo) {
+class TodoUseCases (private val todoRepo: TodoRepo) {
     fun addTodo(todoDTO: TodoDTO) = todoRepo.openTransaction {
         todoRepo.insert(todoDTO)
     }

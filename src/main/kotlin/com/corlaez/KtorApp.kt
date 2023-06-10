@@ -1,25 +1,21 @@
 package com.corlaez
 
 import com.corlaez.todo.tech.TodoKtor
-import com.corlaez.todo.tech.TodoRepoModule
 import com.corlaez.util.textFromWebjarWithArtifactId
-import dagger.Component
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-@Component(modules = [TodoRepoModule::class])
-interface TodoComponent {
-    fun todoKtor(): TodoKtor
-}
+class KtorApp : KoinComponent {
+    private val todoKtor: TodoKtor by inject()
 
-class KtorApp {
     fun start(port: Int) {
         embeddedServer(Netty, port) {
-            val todoKtor = DaggerTodoComponent.create().todoKtor()
 
             routing {
                 webjars()

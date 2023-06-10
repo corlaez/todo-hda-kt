@@ -1,11 +1,20 @@
 package com.corlaez
 
-private val initFunctions = mutableListOf<() -> Unit>()
-/** Make sure to call this method in companion objects init method to ensure registration is complete before DI starts*/
-fun registerInitFunction(fn: () -> Unit) = initFunctions.add(fn)
-fun registerInitFunction(i: Int, fn: () -> Unit) = initFunctions.add(i, fn)
+import com.corlaez.todo.todoModules
+import com.corlaez.util.AppConfig
+import org.koin.core.context.GlobalContext.startKoin
+import org.koin.core.module.dsl.createdAtStart
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.withOptions
+import org.koin.dsl.module
 
+val appModule = module {
+    singleOf(::SqliteExposedConfig) withOptions { createdAtStart() }
+}
 fun main() {
-    initFunctions.forEach { it() }
+    startKoin {
+        modules(appModule + todoModules)
+    }
+    AppConfig.initialize()
     KtorApp().start(3031)
 }
