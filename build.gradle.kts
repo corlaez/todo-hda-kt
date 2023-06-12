@@ -19,7 +19,7 @@ dependencies {
     implementation("org.webjars.npm:todomvc-app-css:2.4.1")
     implementation("org.webjars.npm:todomvc-common:1.0.5")
     implementation("org.webjars:webjars-locator-core:0.52")
-    // logger
+    // logger implementation and includes slf4j api
     implementation("ch.qos.logback:logback-classic:1.4.7")
     // html dsl
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.1")
@@ -31,13 +31,21 @@ dependencies {
     implementation("io.insert-koin:koin-core:3.4.2")
     // db
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.xerial:sqlite-jdbc:3.30.1")
+    // test
+    testImplementation(kotlin("test"))
+    testCompileOnly("org.htmlunit:htmlunit:3.3.0")
+    testRuntimeOnly("org.htmlunit:htmlunit:3.3.0") {
+        exclude("commons-logging", "commons-logging")
+    }
+    // Allows logback config to apply to libs using java commons-logging (htmlunit includes jcl)
+    testImplementation("org.slf4j:jcl-over-slf4j:2.0.7")
 }
 
 tasks.test {
     useJUnitPlatform()
+    include("**/*Test.class")
 }
 
 kotlin {

@@ -14,7 +14,7 @@ const val htmxCheckboxFix = """
         });
       }"""
 
-fun editOnEnterJs(id: Int, filterQueryParam: String): String {
+fun editOnEnterJs(id: Int, preparedQueryParams: String): String {
     return """|
 |              function editOnEnter (e) {
 |                e = e || window.event;
@@ -23,7 +23,7 @@ fun editOnEnterJs(id: Int, filterQueryParam: String): String {
 |                if (isEnter) {
 |                  htmx.ajax(
 |                    'PATCH',
-|                    '/todo/${id}?${filterQueryParam}',
+|                    '/todo/${id}${preparedQueryParams}',
 |                    { target: 'body', values: { content: e.target.value }}
 |                  );
 |                  e.preventDefault();// Avoids second request onBlur

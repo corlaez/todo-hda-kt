@@ -18,8 +18,10 @@ data class TodoViewResponse(
 ) {
     val filterQueryParam = selectedFilter.asQueryParam()
 
-    init { logger.trace(this.toString()) }
+    init { logger.debug(this.toString()) }
 }
+private fun prepareQueryParams(vararg queryParams: String) = queryParams.joinToString("&")
+    .let { if(it.isNotBlank()) "?$it" else it }
 
 fun HTML.renderHtmx(todoViewResponse: TodoViewResponse) {
     val todos = todoViewResponse.todos
@@ -69,7 +71,7 @@ fun HTML.renderHtmx(todoViewResponse: TodoViewResponse) {
                 input(classes = "new-todo", name = "content") {
                     attributes["placeholder"] = "What needs to be done?"
                     attributes["hx-vals"] = "{\"completed\":\"off\"}"
-                    attributes["hx-post"] = "/todo?${todoViewResponse.filterQueryParam}"
+                    attributes["hx-post"] = "/todo${prepareQueryParams(todoViewResponse.filterQueryParam)}"
                     attributes["hx-target"] = "body"
                     attributes["hx-trigger"] = "keyup[key=='Enter']"
                     attributes["hx-on"] = "htmx:beforeRequest: event.target.readOnly = true"
@@ -87,7 +89,7 @@ fun HTML.renderHtmx(todoViewResponse: TodoViewResponse) {
                 label {
                     // required because checkbox would be hx-included and therefore not fixed
                     attributes["hx-vals"] = "{\"completed\":${!todosInfo.isAllCompleted}}"
-                    attributes["hx-patch"] = "/todos/toggle?${todoViewResponse.filterQueryParam}"
+                    attributes["hx-patch"] = "/todos/toggle${prepareQueryParams(todoViewResponse.filterQueryParam)}"
                     attributes["hx-target"] = "body"
                     attributes["for"] = "toggle-all"
                     +"Mark all as complete"
@@ -105,35 +107,35 @@ fun HTML.renderHtmx(todoViewResponse: TodoViewResponse) {
                         li(classes = liClasses) {
                             div(classes = "view") {
                                 input(classes = "toggle", type = InputType.checkBox, name = "completed") {
-                                    attributes["hx-patch"] = "/todo/${todo.id}?${todoViewResponse.filterQueryParam}"
+                                    attributes["hx-patch"] = "/todo/${todo.id}${prepareQueryParams(todoViewResponse.filterQueryParam)}"
                                     attributes["hx-target"] = "body"
                                     checked = todo.completed
                                 }
                                 label {
-                                    attributes["hx-get"] = "/todos/${todo.id}?${todoViewResponse.filterQueryParam}"
+                                    attributes["hx-get"] = "/todos/${todo.id}${prepareQueryParams(todoViewResponse.filterQueryParam)}"
                                     attributes["hx-target"] = "body"
                                     attributes["hx-trigger"] = "dblclick"
                                     +todo.content
                                 }
                                 button(classes = "destroy") {
-                                    attributes["hx-delete"] = "/todo/${todo.id}?${todoViewResponse.filterQueryParam}"
+                                    attributes["hx-delete"] = "/todo/${todo.id}${prepareQueryParams(todoViewResponse.filterQueryParam)}"
                                     attributes["hx-target"] = "body"
                                 }
                             }
                             if (editModeForThisTodo) {
+                                script {
+                                    unsafe {
+                                        +editOnEnterJs(todo.id, prepareQueryParams(todoViewResponse.filterQueryParam)).trimMargin()
+                                    }
+                                }
                                 input(classes = "edit", name = "content") {
-                                    attributes["hx-get"] = "/?${todoViewResponse.filterQueryParam}"
+                                    attributes["hx-get"] = "/${prepareQueryParams(todoViewResponse.filterQueryParam)}"
                                     attributes["hx-target"] = "body"
                                     attributes["hx-trigger"] = "blur, keyup[key=='Escape']"
                                     attributes["onkeydown"] = "editOnEnter(event)"
                                     attributes["onfocus"] = "this.setSelectionRange(this.value.length,this.value.length);"
                                     autoFocus = true
                                     value = todo.content
-                                }
-                                script {
-                                    unsafe {
-                                        +editOnEnterJs(todo.id, todoViewResponse.filterQueryParam).trimMargin()
-                                    }
                                 }
                             }
                         }
@@ -149,7 +151,7 @@ fun HTML.renderHtmx(todoViewResponse: TodoViewResponse) {
                     listOf("All" to TodoFilter.ALL, "Active" to TodoFilter.ACTIVE, "Completed" to TodoFilter.COMPLETED).forEach {
                         li {
                             a(classes = filterClass(it.second)) {
-                                attributes["hx-get"] = "/?${it.second.asQueryParam()}"
+                                attributes["hx-get"] = "/${prepareQueryParams(it.second.asQueryParam())}"
                                 attributes["hx-target"] = "body"
                                 attributes["hx-push-url"] = "true"
                                 +it.first
@@ -159,7 +161,7 @@ fun HTML.renderHtmx(todoViewResponse: TodoViewResponse) {
                 }
                 button(classes = "clear-completed") {
                     attributes["style"] = "display: " + if(todosInfo.isCompletedNotEmpty) "block" else "none"
-                    attributes["hx-delete"] = "/todos/completed?${selectedFilter.asQueryParam()}"
+                    attributes["hx-delete"] = "/todos/completed${prepareQueryParams(todoViewResponse.filterQueryParam)}"
                     attributes["hx-target"] = "body"
                     +"Clear Completed"
                 }

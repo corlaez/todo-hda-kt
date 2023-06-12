@@ -16,6 +16,10 @@ class Http4kApp : KoinComponent {
     private val todoHttp4k: TodoHttp4k by inject()
     private val logger = LoggerFactory.getLogger(Http4kApp::class.java)
 
+    init {
+        AppConfig.initialize()
+    }
+
     fun start(port: Int) {
         fun jsResponse() = Response(Status.OK).with(CONTENT_TYPE of ContentType.Text("application/javascript"))
         val app = routes(
