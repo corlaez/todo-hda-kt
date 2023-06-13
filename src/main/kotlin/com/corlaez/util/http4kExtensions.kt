@@ -10,7 +10,7 @@ import org.http4k.core.with
 import org.http4k.lens.Header
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger("respondHtml")
+private val logger = LoggerFactory.getLogger("com.corlaez.respondHtml")
 
 fun respondHtml(block: HTML.() -> Unit): Response {
     val text = buildString {

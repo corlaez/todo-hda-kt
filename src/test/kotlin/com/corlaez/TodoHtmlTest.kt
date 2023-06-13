@@ -3,42 +3,16 @@ package com.corlaez
 import com.corlaez.todo.TodoFilter
 import org.htmlunit.*
 import org.htmlunit.html.*
-import org.htmlunit.util.WebConnectionWrapper
 import org.junit.jupiter.api.*
-import org.koin.core.context.GlobalContext.startKoin
 import org.slf4j.LoggerFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-private const val port = 3033
-private val server = startKoin {
-    modules(appModule)
-}.let { Http4kApp() }.also { it.start(port) }
-private val webClient = WebClient(). also {
-    it.options.isJavaScriptEnabled = true
-    it.options.isThrowExceptionOnScriptError = true
-    it.options.isCssEnabled = true
-    it.ajaxController = NicelyResynchronizingAjaxController()
+private val logger = LoggerFactory.getLogger(TodoHtmlTest::class.java)
 
-//    it.webConnection = object : MockWebConnection()
-
-    object : WebConnectionWrapper(it) {
-        private val logger = LoggerFactory.getLogger(this::class.java)
-        override fun getResponse(request: WebRequest): WebResponse {
-            val response = super.getResponse(request)
-            val isHTMX = request.getAdditionalHeader("HX-Request") == "true"
-            val htmx = if(isHTMX) " htmx " else "      "
-            if(!listOf("/todoApp.css","/learnDrawer.css").contains(request.url.path))
-                with(request) { logger.info("$httpMethod$htmx$url") }
-            return response
-        }
-    }
-}
-
-@TestMethodOrder(value = MethodOrderer.Random::class)
 class TodoHtmlTest: Person {
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val webClient = createWebClient()
     private val pathCheckbox = "input[@type='checkbox']"
     private fun pathWithText(t: String) = "*[normalize-space(text())='$t']"
     private fun fpathCheckboxBeforeText(t: String) = pathWithText(t).let {
@@ -72,10 +46,15 @@ class TodoHtmlTest: Person {
     private fun elementDeleteTodo(t: String) = "//${pathWithText(t)}/following::*[@hx-delete]".xpath<HtmlElement>().first()
     private fun checkboxPrecedingText(text: String) = fpathCheckboxBeforeText(text).xpath<HtmlInput>().last()// Last because they show in the order they appear
     private fun waitForBackgroundJs() {
-        webClient.waitForBackgroundJavaScript(1000)
+        webClient.waitForBackgroundJavaScript(500)
         pageXml = page.asXml()
     }
     private val enterChar = Char(13)
+
+    @AfterEach
+    fun cleanup() {
+        assertEquals(expectedMainPageText, page.asNormalizedText())
+    }
 
     @Test
     fun createEditContentAndDeleteOneTodo() {
@@ -129,9 +108,9 @@ class TodoHtmlTest: Person {
     fun editTodoToggleAndUseFilters() {
         httpGetRequest("/")
         val todo = "todo1"
-        selectFilter(TodoFilter.ALL)
         createTodo(todo)
 
+        selectFilter(TodoFilter.ALL)
         editTodoToggle(todo)
         assertDoesNotThrow { elementWithText(todo) }
         selectFilter(TodoFilter.ACTIVE)
@@ -145,20 +124,23 @@ class TodoHtmlTest: Person {
         assertDoesNotThrow { elementWithText(todo) }
         selectFilter(TodoFilter.ALL)
         assertDoesNotThrow { elementWithText(todo) }
+
+        deleteTodo(todo)
     }
 
     @Test
     fun bulkToggleBulkDelete() {
         httpGetRequest("/")
         assertEquals(expectedMainPageText, page.asNormalizedText())
-        selectFilter(TodoFilter.ALL)
         val todo1 = "todo1"
         val todo2 = "todo2"
         val todo3 = "todo3"
         createTodo(todo1)
         createTodo(todo2)
         createTodo(todo3)
-        assertThrows<Exception> { deleteAllCompleted() }
+
+        toggleAll()// Marks All as completed
+        deleteAllCompleted()// Deletes all
     }
 
     @Test

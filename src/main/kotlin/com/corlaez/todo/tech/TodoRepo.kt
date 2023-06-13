@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.dsl.module
+import java.util.concurrent.Semaphore
 
 interface TodoRepo {
     fun <X> openTransaction(block: () -> X): X
@@ -35,11 +36,16 @@ private fun Query.toTodoList() = this.mapLazy { it.toDTO() }.toList()
 
 // Repo
 private class TodoRepoExposed(sqliteExposedConfig: SqliteExposedConfig) : TodoRepo {
+    val semaphore = Semaphore(1)
+
     init {
         sqliteExposedConfig.registerTable(TodoTable)
     }
     override fun <X> openTransaction(block: () -> X): X = transaction {
-        block()
+        semaphore.acquire()
+        val x = block()
+        semaphore.release()
+        x
     }
     override fun listAll(): List<TodoDTO> {
         return TodoTable.selectAll().toTodoList()

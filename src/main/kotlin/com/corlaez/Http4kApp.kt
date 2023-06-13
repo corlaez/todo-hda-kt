@@ -4,6 +4,7 @@ import com.corlaez.todo.tech.TodoHttp4k
 import com.corlaez.util.*
 import org.http4k.core.*
 import org.http4k.lens.Header.CONTENT_TYPE
+import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.http4k.server.Netty
@@ -21,12 +22,14 @@ class Http4kApp : KoinComponent {
     }
 
     fun start(port: Int) {
-        fun jsResponse() = Response(Status.OK).with(CONTENT_TYPE of ContentType.Text("application/javascript"))
-        val app = routes(
-            *todoHttp4k.routingArray,
-            "/htmx.js" bind Method.GET to { jsResponse().body(htmxJs) },
-        )
-        logger.info("Responding at http://127.0.0.1:$port")
-        app.asServer(Netty(port)).start()
+        logger.warn("Responding at http://127.0.0.1:$port")
+        handlers().asServer(Netty(port)).start()
     }
+
+    private fun jsResponse() = Response(Status.OK).with(CONTENT_TYPE of ContentType.Text("application/javascript"))
+
+    fun handlers() = routes(
+        *todoHttp4k.routingArray,
+        "/htmx.js" bind Method.GET to { jsResponse().body(htmxJs) },
+    )
 }

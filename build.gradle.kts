@@ -16,8 +16,8 @@ val exposedVersion: String by project
 dependencies {
     // webjars
     implementation("org.webjars.npm:htmx.org:1.9.2")
-    implementation("org.webjars.npm:todomvc-app-css:2.4.1")
-    implementation("org.webjars.npm:todomvc-common:1.0.5")
+    implementation("org.webjars.npm:todomvc-app-css:2.4.1")// app css
+    implementation("org.webjars.npm:todomvc-common:1.0.5") // learn sidebar css
     implementation("org.webjars:webjars-locator-core:0.52")
     // logger implementation and includes slf4j api
     implementation("ch.qos.logback:logback-classic:1.4.7")
@@ -45,7 +45,6 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    include("**/*Test.class")
 }
 
 kotlin {

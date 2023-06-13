@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 
 fun KoinApplication.slf4jKoinLogger(level: Level = Level.INFO): KoinApplication {
     logger(object : Logger(level) {
-        val slf4jLogger = LoggerFactory.getLogger("Koin")
+        val slf4jLogger = LoggerFactory.getLogger("com.corlaez.Koin")
         override fun display(level: Level, msg: MESSAGE) {
             when(level) {
                 Level.DEBUG -> slf4jLogger.debug(msg)

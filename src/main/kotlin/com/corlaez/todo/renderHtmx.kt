@@ -148,7 +148,12 @@ fun HTML.renderHtmx(todoViewResponse: TodoViewResponse) {
                 span(classes = "todo-count") { strong { +todosInfo.activeCount.toString() }; +" items left" }
                 ul(classes = "filters") {
                     fun filterClass(forButton: TodoFilter) = if(selectedFilter == forButton) "selected" else ""
-                    listOf("All" to TodoFilter.ALL, "Active" to TodoFilter.ACTIVE, "Completed" to TodoFilter.COMPLETED).forEach {
+                    val filters = listOf(
+                        "All" to TodoFilter.ALL,
+                        "Active" to TodoFilter.ACTIVE,
+                        "Completed" to TodoFilter.COMPLETED
+                    )
+                    filters.forEach {
                         li {
                             a(classes = filterClass(it.second)) {
                                 attributes["hx-get"] = "/${prepareQueryParams(it.second.asQueryParam())}"

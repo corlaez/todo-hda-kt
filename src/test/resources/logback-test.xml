@@ -4,10 +4,14 @@
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="warn">
+    <root level="trace">
         <appender-ref ref="STDOUT"/>
     </root>
-<!--    <logger name="io.netty" level="INFO"/>-->
-<!--    <logger name="ktor.application" level="WARN"/>-->
-<!--    <logger name="Exposed" level="INFO"/>-->
+    <logger name="com.corlaez" level="info"/>
+
+    <logger name="io.netty" level="INFO"/>
+    <logger name="ktor.application" level="WARN"/>
+    <logger name="Exposed" level="INFO"/>
+
+    <logger name="org.htmlunit" level="WARN"/>
 </configuration>
