@@ -13,27 +13,31 @@ import java.sql.DriverManager
 class SqliteExposedConfig(private val runMode: RunMode) {
     private val sqlitePath = if (runMode.isDatabaseInMemory()) {
         "jdbc:sqlite:file:test?mode=memory&cache=shared"
-    } else {
+    } else if (runMode.isDatabaseInFile()){
         "jdbc:sqlite:/data/data.db"
+    } else {
+        null
     }
 
     init {
-        AppConfig.registerInitFunction {
-            val db = Database.connect(sqlitePath, "org.sqlite.JDBC",
-                setupConnection = {
-                    SQLiteConfig().apply {
+        if(sqlitePath != null) {
+            AppConfig.registerInitFunction {
+                val db = Database.connect(sqlitePath, "org.sqlite.JDBC",
+                    setupConnection = {
+                        SQLiteConfig().apply {
 //                        setSharedCache(true)
 //                        setJournalMode(SQLiteConfig.JournalMode.MEMORY)
 //                        setLockingMode(SQLiteConfig.LockingMode.WAL)
-                        apply(it)
-                    }
-                },
-            )
-            TransactionManager.defaultDatabase = db
-            TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-            // Prevents the connection to be closed which would destroy the state in the sqlite in-memory db
-            if (runMode.isDatabaseInMemory())
-                openConnection()
+                            apply(it)
+                        }
+                    },
+                )
+                TransactionManager.defaultDatabase = db
+                TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+                // Prevents the connection to be closed which would destroy the state in the sqlite in-memory db
+                if (runMode.isDatabaseInMemory())
+                    openConnection()
+            }
         }
     }
 

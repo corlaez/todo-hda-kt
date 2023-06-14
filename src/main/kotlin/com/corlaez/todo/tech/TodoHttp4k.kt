@@ -2,8 +2,6 @@ package com.corlaez.todo.tech
 
 import com.corlaez.todo.*
 import com.corlaez.util.*
-import kotlinx.html.html
-import kotlinx.html.stream.createHTML
 import org.http4k.core.*
 import org.http4k.core.body.formAsMap
 import org.http4k.routing.bind

@@ -10,8 +10,9 @@ import org.koin.dsl.module
 
 enum class RunMode {
     PROD, DEV, TEST;
-    fun isDatabaseInMemory() = this != PROD
-    fun isDbSchemaCreatedDuringInit() = this != PROD
+    fun isDatabaseInMemory() = this == DEV
+    fun isDatabaseInFile() = this == PROD
+    fun isDbSchemaCreatedDuringInit() = this == DEV
 }
 
 val appModule = module {

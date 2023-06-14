@@ -23,7 +23,7 @@ class TodoUseCases (private val todoRepo: TodoRepo) {
     }
     fun delete(id: Int) = todoRepo.openTransaction { todoRepo.delete(id) }
     fun get(id: Int) = todoRepo.openTransaction { todoRepo.get(id) }
-    fun update(todoDTO: TodoDTO) = todoRepo.openTransaction { todoRepo.update(todoDTO) }
+    fun update(todoDTO: TodoDTO): Unit = todoRepo.openTransaction { todoRepo.update(todoDTO) }
     fun updateCompletedToAll(completed: Boolean) = todoRepo.openTransaction { todoRepo.updateCompletedToAll(completed) }
     fun deleteCompleted() = todoRepo.openTransaction { todoRepo.deleteCompleted() }
 }

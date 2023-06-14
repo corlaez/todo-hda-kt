@@ -1,29 +1,47 @@
 package com.corlaez
 
+import com.corlaez.todo.tech.testingTodoRepoModule
 import org.htmlunit.*
 import org.htmlunit.util.NameValuePair
-import org.http4k.core.Body
-import org.http4k.core.Method
-import org.http4k.core.Request
-import org.http4k.core.Response
+import org.http4k.client.JavaHttpClient
+import org.http4k.core.*
 import org.koin.core.context.GlobalContext
 import org.koin.dsl.module
 import org.slf4j.LoggerFactory
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 const val port = 3033
 
-private val koinApp = GlobalContext.startKoin {
-    modules(appModule + module { single { RunMode.TEST } })
+val koinApp = GlobalContext.startKoin {
+    modules(appModule + module { single { RunMode.TEST } } + testingTodoRepoModule)
 }
 
-// Or use the vals bellow to send real http requests
-private val server = Http4kApp()
-private val client4k = server.handlers()
-//private val server = Http4kApp().start(port)
-//private val client4k = JavaHttpClient()
+@OptIn(ExperimentalTime::class)
+fun createWebClient(client4k: HttpHandler = JavaHttpClient()): WebClient = measureTimedValue { WebClient().apply {
+    options.isJavaScriptEnabled = true
+    options.isThrowExceptionOnScriptError = true
+    options.isCssEnabled = true
+    ajaxController = NicelyResynchronizingAjaxController()
+    webConnection = Http4kWebConnection(client4k)
+} }.let {
+    println(it.duration.inWholeMicroseconds)
+    it.value
+}
+val webClientInit = createWebClient { Response(Status.OK) }
 
-private class Http4kWebConnection  : WebConnection {
+private class Http4kWebConnection(private val client4k: HttpHandler) : WebConnection {
     private val logger = LoggerFactory.getLogger(Http4kWebConnection::class.java)
+
+    override fun close() {}
+
+    override fun getResponse(webRequest: WebRequest): WebResponse {
+        logIncomingRequest(webRequest)
+        val request4k = webRequest.toHtt4kRequest()
+        val response4k = client4k(request4k)
+        val webResponseData = response4k.toWebResponseData()
+        return WebResponse(webResponseData, webRequest, 1000)
+    }
 
     private fun WebRequest.http4kMethod() = Method.valueOf(httpMethod.toString())
     private fun WebRequest.http4kHeaders() = additionalHeaders.entries.map { (f, s) -> f to s }
@@ -44,23 +62,4 @@ private class Http4kWebConnection  : WebConnection {
             }
         }
     private fun Response.toWebResponseData() = WebResponseData(bodyAsBytes(), status.code, status.description, webHeaders())
-
-    override fun close() {}
-
-    override fun getResponse(webRequest: WebRequest): WebResponse {
-        logIncomingRequest(webRequest)
-        val request4k = webRequest.toHtt4kRequest()
-        val response4k = client4k(request4k)
-        val webResponseData = response4k.toWebResponseData()
-        return WebResponse(webResponseData, webRequest, 1000)
-    }
 }
-
-fun createWebClient() = WebClient().apply {
-    options.isJavaScriptEnabled = true
-    options.isThrowExceptionOnScriptError = true
-    options.isCssEnabled = true
-    ajaxController = NicelyResynchronizingAjaxController()
-    webConnection = Http4kWebConnection()
-}
-val sqliteConfig = koinApp.koin.get<SqliteExposedConfig>()
