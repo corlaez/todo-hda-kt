@@ -8,21 +8,18 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.sqlite.SQLiteConfig
 import java.sql.Connection
-import java.sql.DriverManager
 
 class SqliteExposedConfig(private val runMode: RunMode) {
-    private val sqlitePath = if (runMode.isDatabaseInMemory()) {
-        "jdbc:sqlite:file:test?mode=memory&cache=shared"
-    } else if (runMode.isDatabaseInFile()){
-        "jdbc:sqlite:/data/data.db"
-    } else {
+    private val sqlitePath = if (runMode.isFakeDb()) {
         null
+    } else {
+        "jdbc:sqlite:data.db"
     }
 
     init {
-        if(sqlitePath != null) {
+        if(!runMode.isFakeDb()) {
             AppConfig.registerInitFunction {
-                val db = Database.connect(sqlitePath, "org.sqlite.JDBC",
+                Database.connect(sqlitePath!!, "org.sqlite.JDBC",
                     setupConnection = {
                         SQLiteConfig().apply {
 //                        setSharedCache(true)
@@ -32,22 +29,16 @@ class SqliteExposedConfig(private val runMode: RunMode) {
                         }
                     },
                 )
-                TransactionManager.defaultDatabase = db
                 TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-                // Prevents the connection to be closed which would destroy the state in the sqlite in-memory db
-                if (runMode.isDatabaseInMemory())
-                    openConnection()
             }
         }
     }
 
     fun registerTable(table: Table) {
-        if (runMode.isDbSchemaCreatedDuringInit())
-            transaction { SchemaUtils.create(table) }
-    }
-
-    private fun openConnection(): () -> Unit {
-        val con = DriverManager.getConnection(sqlitePath)
-        return { con.close() }
+        if (!runMode.isFakeDb()) {
+            AppConfig.registerInitFunction {
+                transaction { SchemaUtils.create(table) }
+            }
+        }
     }
 }

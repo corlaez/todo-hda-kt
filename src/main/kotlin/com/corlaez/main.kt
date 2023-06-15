@@ -9,21 +9,22 @@ import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 
 enum class RunMode {
-    PROD, DEV, TEST;
-    fun isDatabaseInMemory() = this == DEV
-    fun isDatabaseInFile() = this == PROD
-    fun isDbSchemaCreatedDuringInit() = this == DEV
+    PROD, NON_PROD;
+    fun isFakeDb() = this != PROD
 }
 
 val appModule = module {
+    single<RunMode> {
+        val runModeString = System.getenv("env")?.lowercase()
+        if (runModeString == "prod") RunMode.PROD else RunMode.NON_PROD
+    }
     singleOf(::SqliteExposedConfig) withOptions { createdAtStart() }
 } + todoModules
 
-fun main(arg: Array<String>) {
-    val runMode = if(arg.getOrNull(0)?.lowercase() == "prod") RunMode.PROD else RunMode.DEV
+fun main() {
     startKoin {
         slf4jKoinLogger()
-        modules(appModule + module { single { runMode } })
+        modules(appModule)
     }
     Http4kApp().start(3031)
 }

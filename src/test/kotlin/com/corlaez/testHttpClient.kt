@@ -1,12 +1,10 @@
 package com.corlaez
 
-import com.corlaez.todo.tech.testingTodoRepoModule
 import org.htmlunit.*
 import org.htmlunit.util.NameValuePair
 import org.http4k.client.JavaHttpClient
 import org.http4k.core.*
 import org.koin.core.context.GlobalContext
-import org.koin.dsl.module
 import org.slf4j.LoggerFactory
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
@@ -14,7 +12,7 @@ import kotlin.time.measureTimedValue
 const val port = 3033
 
 val koinApp = GlobalContext.startKoin {
-    modules(appModule + module { single { RunMode.TEST } } + testingTodoRepoModule)
+    modules(appModule)
 }
 
 @OptIn(ExperimentalTime::class)

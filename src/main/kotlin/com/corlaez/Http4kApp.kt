@@ -9,7 +9,7 @@ import org.http4k.routing.routes
 import org.http4k.server.Netty
 import org.http4k.server.asServer
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.core.component.get
 import org.slf4j.LoggerFactory
 
 interface HttpHandlerProvider {
@@ -17,7 +17,7 @@ interface HttpHandlerProvider {
 }
 
 class Http4kApp : KoinComponent, HttpHandlerProvider {
-    private val todoHttp4k: TodoHttp4k by inject()
+    private val todoHttp4k: TodoHttp4k = get()
     private val logger = LoggerFactory.getLogger(Http4kApp::class.java)
 
     init {

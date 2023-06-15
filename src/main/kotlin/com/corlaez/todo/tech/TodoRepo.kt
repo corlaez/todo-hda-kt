@@ -1,5 +1,6 @@
 package com.corlaez.todo.tech
 
+import com.corlaez.RunMode
 import com.corlaez.SqliteExposedConfig
 import com.corlaez.todo.TodoDTO
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -22,10 +23,57 @@ interface TodoRepo {
 }
 
 val todoRepoModule = module {
-    factory<TodoRepo> { TodoRepoExposed(get()) }
+    factory<TodoRepo> {
+        val runMode: RunMode = get()
+        if (runMode.isFakeDb()) TodoRepoFake()
+        else TodoRepoExposed(get())
+    }
 }
-val testingTodoRepoModule = module {
-    factory<TodoRepo> { TodoRepoFake() }
+
+private class TodoRepoFake: TodoRepo {
+    private var lastId = 0
+    private val orderPreservingMap = LinkedHashMap<Int, TodoDTO>()
+
+    override fun <X> openTransaction(block: () -> X): X {
+        return block()
+    }
+
+    override fun listAll(): List<TodoDTO> = orderPreservingMap.values.toList()
+
+    override fun listAllFilterCompleted(completed: Boolean): List<TodoDTO> = listAll()
+        .filter { it.completed == completed }
+
+    override fun insert(todo: TodoDTO) = (++lastId)
+        .let { todo.copy(id = it) }
+        .let { orderPreservingMap[it.id!!] = it }
+
+    override fun update(todo: TodoDTO) {
+        orderPreservingMap[todo.id!!]
+            ?.let { if(todo.content != null) it.copy(content = todo.content) else it }
+            ?.let { if(todo.completed != null) it.copy(completed = todo.completed) else it }
+            ?.let { orderPreservingMap[todo.id] = it }
+    }
+
+    override fun delete(id: Int) { orderPreservingMap.remove(id) }
+
+    override fun get(id: Int): TodoDTO = orderPreservingMap[id]!!
+
+    override fun updateCompletedToAll(value: Boolean) {
+        orderPreservingMap.keys.forEach { id ->
+            orderPreservingMap[id]?.copy(completed = value)?.let { todo ->
+                orderPreservingMap[id] = todo
+            }
+        }
+    }
+
+    override fun deleteCompleted() {
+        // copy the ids list to avoid concurrent modification (changing while keys iterator is in use)
+        orderPreservingMap.keys.toList().forEach { id ->
+            if (orderPreservingMap[id]?.completed == true) {
+                orderPreservingMap.remove(id)
+            }
+        }
+    }
 }
 
 // lib dependent code
@@ -79,51 +127,5 @@ private class TodoRepoExposed(sqliteExposedConfig: SqliteExposedConfig) : TodoRe
     }
     override fun deleteCompleted() {
         TodoTable.deleteWhere { completed eq true }
-    }
-}
-
-private class TodoRepoFake: TodoRepo {
-    private var lastId = 0
-    private val orderPreservingMap = LinkedHashMap<Int, TodoDTO>()
-
-    override fun <X> openTransaction(block: () -> X): X {
-        return block()
-    }
-
-    override fun listAll(): List<TodoDTO> = orderPreservingMap.values.toList()
-
-    override fun listAllFilterCompleted(completed: Boolean): List<TodoDTO> = listAll()
-        .filter { it.completed == completed }
-
-    override fun insert(todo: TodoDTO) = (++lastId)
-        .let { todo.copy(id = it) }
-        .let { orderPreservingMap[it.id!!] = it }
-
-    override fun update(todo: TodoDTO) {
-        orderPreservingMap[todo.id!!]
-            ?.let { if(todo.content !=null) it.copy(content = todo.content) else it }
-            ?.let { if(todo.completed !=null) it.copy(completed = todo.completed) else it }
-            ?.let { orderPreservingMap[todo.id] = it }
-    }
-
-    override fun delete(id: Int) { orderPreservingMap.remove(id) }
-
-    override fun get(id: Int): TodoDTO = orderPreservingMap[id]!!
-
-    override fun updateCompletedToAll(value: Boolean) {
-        orderPreservingMap.keys.forEach { id ->
-            orderPreservingMap[id]?.copy(completed = value)?.let { todo ->
-                orderPreservingMap[id] = todo
-            }
-        }
-    }
-
-    override fun deleteCompleted() {
-        // copy the ids list to avoid concurrent modification (changing while keys iterator is in use)
-        orderPreservingMap.keys.toList().forEach { id ->
-            if (orderPreservingMap[id]?.completed == true) {
-                orderPreservingMap.remove(id)
-            }
-        }
     }
 }
