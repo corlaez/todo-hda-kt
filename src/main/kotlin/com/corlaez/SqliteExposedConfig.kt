@@ -22,9 +22,10 @@ class SqliteExposedConfig(private val runMode: RunMode) {
                 Database.connect(sqlitePath!!, "org.sqlite.JDBC",
                     setupConnection = {
                         SQLiteConfig().apply {
-//                        setSharedCache(true)
-//                        setJournalMode(SQLiteConfig.JournalMode.MEMORY)
-//                        setLockingMode(SQLiteConfig.LockingMode.WAL)
+//                            setSharedCache(true)
+                            setJournalMode(SQLiteConfig.JournalMode.WAL)
+                            setSynchronous(SQLiteConfig.SynchronousMode.NORMAL)
+//                            setLockingMode(SQLiteConfig.LockingMode.WAL)
                             apply(it)
                         }
                     },

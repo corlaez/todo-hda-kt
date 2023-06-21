@@ -38,7 +38,7 @@ class HttpPerson(handler: HttpHandler) : Person {
 
     fun httpGetRequest(path: String) {
         logger.info("httpGetRequest $path")
-        page = webClient.getPage("http://127.0.0.1:$port")
+        page = webClient.getPage("http://127.0.0.1:$testPort")
         waitForBackgroundJs()
     }
 

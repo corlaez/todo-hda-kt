@@ -1,12 +1,20 @@
 package com.corlaez.util
 
+import com.corlaez.RunMode
 import org.koin.core.KoinApplication
 import org.koin.core.logger.Level
 import org.koin.core.logger.Logger
 import org.koin.core.logger.MESSAGE
+import org.koin.core.module.Module
+import org.koin.dsl.module
 import org.slf4j.LoggerFactory
 
-fun KoinApplication.slf4jKoinLogger(level: Level = Level.INFO): KoinApplication {
+fun KoinApplication.slf4jKoinLogger(runMode : RunMode): KoinApplication {
+    val level = when(runMode) {
+        RunMode.PROD -> Level.WARNING
+        RunMode.NON_PROD -> Level.INFO
+        RunMode.TEST -> Level.NONE
+    }
     logger(object : Logger(level) {
         val slf4jLogger = LoggerFactory.getLogger("com.corlaez.Koin")
         override fun display(level: Level, msg: MESSAGE) {
@@ -20,4 +28,11 @@ fun KoinApplication.slf4jKoinLogger(level: Level = Level.INFO): KoinApplication 
         }
     })
     return this
+}
+
+inline fun <reified T> (() -> T)?.singleModuleOrNull(): Module? {
+    val fn = this ?: return null
+    return module {
+        single { fn() }
+    }
 }

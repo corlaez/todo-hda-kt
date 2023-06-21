@@ -4,29 +4,19 @@ import org.htmlunit.*
 import org.htmlunit.util.NameValuePair
 import org.http4k.client.JavaHttpClient
 import org.http4k.core.*
-import org.koin.core.context.GlobalContext
 import org.slf4j.LoggerFactory
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTimedValue
 
-const val port = 3033
+const val testPort = 3033
 
-val koinApp = GlobalContext.startKoin {
-    modules(appModule)
-}
+val koinApp = RunMode.TEST.startKoin()
 
-@OptIn(ExperimentalTime::class)
-fun createWebClient(client4k: HttpHandler = JavaHttpClient()): WebClient = measureTimedValue { WebClient().apply {
+fun createWebClient(client4k: HttpHandler = JavaHttpClient()): WebClient =  WebClient().apply {
     options.isJavaScriptEnabled = true
     options.isThrowExceptionOnScriptError = true
     options.isCssEnabled = true
     ajaxController = NicelyResynchronizingAjaxController()
     webConnection = Http4kWebConnection(client4k)
-} }.let {
-    println(it.duration.inWholeMicroseconds)
-    it.value
 }
-val webClientInit = createWebClient { Response(Status.OK) }
 
 private class Http4kWebConnection(private val client4k: HttpHandler) : WebConnection {
     private val logger = LoggerFactory.getLogger(Http4kWebConnection::class.java)

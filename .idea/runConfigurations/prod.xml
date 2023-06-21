@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="prod" type="JetRunConfigurationType">
+    <envs>
+      <env name="env" value="prod" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.corlaez.MainKt" />
+    <module name="hypermedia-todo-kotlin.main" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

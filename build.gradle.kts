@@ -12,6 +12,7 @@ repositories {
 }
 
 val exposedVersion: String by project
+val slf4jVersion: String by project
 
 dependencies {
     // webjars
@@ -19,8 +20,9 @@ dependencies {
     implementation("org.webjars.npm:todomvc-app-css:2.4.1")// app css
     implementation("org.webjars.npm:todomvc-common:1.0.5") // learn sidebar css
     implementation("org.webjars:webjars-locator-core:0.52")
-    // logger implementation and includes slf4j api
-    implementation("ch.qos.logback:logback-classic:1.4.7")
+    // logger
+    implementation("ch.qos.logback:logback-classic:1.4.8")
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
     // html dsl
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.1")
     // http4k server
@@ -32,15 +34,15 @@ dependencies {
     // db
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation("org.xerial:sqlite-jdbc:3.30.1")
+    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
     // test
     testImplementation(kotlin("test"))
     testCompileOnly("org.htmlunit:htmlunit:3.3.0")
     testRuntimeOnly("org.htmlunit:htmlunit:3.3.0") {
         exclude("commons-logging", "commons-logging")
     }
-    // Allows logback config to apply to libs using java commons-logging (htmlunit includes jcl)
-    testImplementation("org.slf4j:jcl-over-slf4j:2.0.7")
+    // Allows logback config to apply to libs using Jakarta Commons Logging (htmlunit includes jcl)
+    testImplementation("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 }
 
 tasks.test {

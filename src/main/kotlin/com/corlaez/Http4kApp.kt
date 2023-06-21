@@ -29,7 +29,8 @@ class Http4kApp : KoinComponent, HttpHandlerProvider {
         handlers().asServer(Netty(port)).start()
     }
 
-    private fun jsResponse() = Response(Status.OK).with(CONTENT_TYPE of ContentType.Text("application/javascript"))
+    private fun jsResponse() = Response(Status.OK)
+        .with(CONTENT_TYPE of ContentType.Text("application/javascript"))
 
     override fun handlers() = routes(
         *todoHttp4k.routingArray,

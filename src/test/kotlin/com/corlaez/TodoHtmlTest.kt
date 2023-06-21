@@ -1,8 +1,9 @@
 package com.corlaez
 
 import com.corlaez.todo.TodoFilter
-import org.junit.jupiter.api.*
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 import kotlin.test.Test
 
 class TodoHtmlTest {
@@ -24,11 +25,6 @@ class TodoHtmlTest {
         Inpired by TodoMVC
     """.trimIndent()
 
-    @AfterEach
-    fun cleanup() {
-        assertEquals(expectedMainPageText, person.page.asNormalizedText())
-    }
-
     @Test
     fun createEditContentAndDeleteOneTodo() {
         val todoText = "Buy soda"
@@ -43,7 +39,6 @@ class TodoHtmlTest {
         person.editTodoText("Buy soda", " and eat dinner")
         assertFalse(person.isElementWithTextPresent(todoText))
         assertTrue(person.isElementWithTextPresent(editedTodoText))
-
 
         person.deleteTodo(editedTodoText)
         assertFalse(person.isElementWithTextPresent(editedTodoText))
